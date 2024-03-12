@@ -31,4 +31,13 @@ contract SandwichTest is Test {
         deal(victim, 1_000 * 1e18 ether);
         deal(address(attacker), 1_000 * 1e18 ether);
     }
+
+    function _frontrun() internal {
+        attacker.firstSwap(WETH.balanceOf(address(attacker)));
+    }
+
+    function _victim() internal{
+        address[] memory path = new address[]();
+        path[0] = address(WETH);
+    }
 }
