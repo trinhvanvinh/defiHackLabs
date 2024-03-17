@@ -36,22 +36,24 @@ contract Attacker {
         address[] memory path = new address[](2);
         path[0] = address(WETH);
         path[1] = address(USDC);
+        console2.log("firstSwap: ", amount, WETH.balanceOf(address(this)));
 
         Router.swapExactTokensForTokens(
             amount,
             0,
             path,
             address(this),
-            block.timestamp
+            block.timestamp + 4200
         );
     }
 
-    function secondSwap() external {
+    function secondSwap(uint256 amount) external {
+        console2.log("secondSwap:", address(this));
         address[] memory path = new address[](2);
         path[0] = address(USDC);
         path[1] = address(WETH);
 
-        uint256 amount = USDC.balanceOf(address(this));
+        //uint256 amount = USDC.balanceOf(address(this));
         Router.swapExactTokensForTokens(
             amount,
             0,

