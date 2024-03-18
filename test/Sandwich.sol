@@ -28,30 +28,31 @@ contract SandwichTest is Test {
         attacker = new Attacker();
 
         //console2.log("victim: ", victim, attacker);
-        deal(victim, 1_000 * 1e18 ether);
-        deal(address(attacker), 1_000 * 1e18 ether);
+        deal(address(WETH), victim, 1_000 ether);
+        deal(address(WETH), address(attacker), 1_000 ether);
     }
 
     function _frontrun() internal {
-        console2.log("11");
         attacker.firstSwap(WETH.balanceOf(address(attacker)));
-        console2.log("22");
         //https://medium.com/immunefi/how-to-reproduce-a-simple-mev-attack-b38151616cb4
     }
 
     function _victim() internal {
+        vm.startPrank(victim);
         address[] memory path = new address[](2);
         path[0] = address(WETH);
         path[1] = address(USDC);
         console2.log("111");
+        WETH.approve(address(Router), type(uint256).max);
         Router.swapExactTokensForTokens(
             WETH.balanceOf(victim),
             0,
             path,
             victim,
-            block.timestamp
+            block.timestamp + 4200
         );
         console2.log("222");
+        vm.stopPrank();
     }
 
     function _backrun() internal {
