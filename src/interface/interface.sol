@@ -4381,7 +4381,7 @@ interface IPriceFeed {
             uint80 answeredInRound
         );
 
-    function fetchPrice() external returns (uint256);
+    function fetchPrice(address token) external returns (uint256);
 }
 
 interface IRToken {
@@ -5785,13 +5785,18 @@ interface IFBep20Delegator {
 
 interface IBorrowerOperations {
     function openTrove(
-        uint256 _maxFee,
-        uint256 _LUSDAmount,
-        uint256 _ETHAmount,
+        address troveManager,
+        address account,
+        uint256 _maxFeePercentage,
+        uint256 _collateralAmount,
+        uint256 _debtAmount,
         address _upperHint,
-        address _lowerHint,
-        address _frontEndTag
+        address _lowerHint
     ) external;
+
+    function closeTrove(address troveManager, address account) external;
+
+    function setDelegateApproval(address _delegate, bool _isApproved) external;
 }
 
 interface IARTH is IERC20 {}
